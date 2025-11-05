@@ -25,4 +25,5 @@ BM3D image processing algorithm implementation written in rust
 
 
 ### FULL IMPLEMNTATION DOCUMENTATION 
-https://docs.google.com/viewerng/viewer?url=https://www.ipol.im/pub/art/2012/l-bm3d//article_lr.pdf
+[Article.pdf](https://docs.google.com/viewerng/viewer?url=https://www.ipol.im/pub/art/2012/l-bm3d//article_lr.pdf)
+[Implementation in c](https://github.com/gfacciol/bm3d)
