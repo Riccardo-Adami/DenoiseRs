@@ -53,8 +53,9 @@ fn dct1d(matrix: &mut [f64], array_length: Option<usize>) -> Vec<f64> {
 fn idct1d(matrix: &mut [f64], array_length: Option<usize>) -> Vec<f64> {
     let length = array_length.unwrap_or(matrix.len());
     let alpha = (2.0 / length as f64).sqrt();
-
+    // first columns then rows
     let cos_table = Array2::from_shape_fn((length, length), |(n, k)| {
+        // discrete cosine tranform
         ((PI * (2.0 * n as f64 + 1.0) * k as f64) / (2.0 * length as f64)).cos()
     });
     
@@ -62,6 +63,7 @@ fn idct1d(matrix: &mut [f64], array_length: Option<usize>) -> Vec<f64> {
         .map(|n| {
             (0..length)
                 .map(|k| {
+                    // 2.0f64 const
                     let ck = if k == 0 { 1.0 / 2.0f64.sqrt() } else { 1.0 };
                     ck * matrix[k] * cos_table[[n, k]]
                 })
@@ -69,13 +71,13 @@ fn idct1d(matrix: &mut [f64], array_length: Option<usize>) -> Vec<f64> {
         })
         .collect()
 }
-
+/// Implementation of dct2d, it uses the dct1d and perform it in 2 dimensions
 fn dct2d(matrix: &mut Vec<Vec<f64>>,
     quant_rows: Option<usize>,
     quant_columns: Option<usize>) -> &mut Vec<Vec<f64>>{
     let rows = quant_rows.unwrap_or_else(|| matrix.len());
     let columns = quant_columns.unwrap_or_else(|| matrix[0].len());
-        
+    // array per test, prefisso _
     let _array2d = vec![
         vec![1.0, 2.0, 3.0],
         vec![4.0, 5.0, 6.0],
@@ -85,7 +87,6 @@ fn dct2d(matrix: &mut Vec<Vec<f64>>,
         *row = dct1d(&mut*row.as_mut_slice(), None);
     }
     for j in 0..columns {
-
         let mut column: Vec<f64> = (0..rows)
             .map(|i| matrix[i][j])
             .collect();
@@ -93,6 +94,37 @@ fn dct2d(matrix: &mut Vec<Vec<f64>>,
         // Apply dct to first column
         let transformed = dct1d(&mut column.as_mut_slice(), None);
 
+        for (i, val) in transformed.into_iter().enumerate() {
+            matrix[i][j] = val;
+        }
+    }
+    matrix
+}
+
+/// Implementation of idct2d, it uses the idct1d and perform it in 2 dimensions
+fn dct2d(matrix: &mut Vec<Vec<f64>>,
+    quant_rows: Option<usize>,
+    quant_columns: Option<usize>) -> &mut Vec<Vec<f64>>{
+    let rows = quant_rows.unwrap_or_else(|| matrix.len());
+    let columns = quant_columns.unwrap_or_else(|| matrix[0].len());
+    // array di esempio
+    let _array2d = vec![
+        vec![1.0, 2.0, 3.0],
+        vec![4.0, 5.0, 6.0],
+        vec![7.0, 8.0, 9.0],
+    ];
+    // Apply idct to rows
+    for row in matrix.iter_mut() {
+        *row = idct1d(&mut*row.as_mut_slice(), None);
+    }
+    
+    // Apply idct to columns
+    for j in 0..columns {
+        let mut column: Vec<f64> = (0..rows)
+            .map(|i| matrix[i][j])
+            .collect();
+        let transformed = idct1d(&mut column.as_mut_slice(), None);
+        // Iterator can be parallelize using rayon
         for (i, val) in transformed.into_iter().enumerate() {
             matrix[i][j] = val;
         }
